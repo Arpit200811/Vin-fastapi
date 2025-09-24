@@ -2,15 +2,14 @@ services:
   - type: web
     name: vin-fastapi
     env: python
-    plan: starter  # or any plan you want
-    region: oregon  # choose your preferred region
+    plan: starter
+    region: oregon
     buildCommand: |
       python -m pip install --upgrade pip
       pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     autoDeploy: true
-    pythonVersion: "3.11.9"
-  # Ensures Python 3.11
+    pythonVersion: "3.11.9"   # Must be properly indented under the service
     envVars:
       - key: ENV
         value: production
