@@ -1,7 +1,25 @@
+# Web framework
 fastapi==0.111.0
 uvicorn[standard]==0.30.1
- tensorflow==2.20.0
-numpy==1.26.4
+
+# TensorFlow stable version
+tensorflow==2.15.0
+keras==2.15.0
+tensorflow-intel==2.15.0
+
+# Numerical & image processing
+numpy==1.23.5
 pillow==10.3.0
-opencv-python-headless==4.10.0.84
-python-multipart==0.0.9
+ml-dtypes==0.2.0
+protobuf==3.20.3
+
+# FastAPI utilities
+python-multipart==0.0.7
+aiofiles==23.2.1
+requests==2.31.0
+
+# Optional (for CLI or Jinja templates)
+jinja2==3.1.6
+httpx==0.28.1
+fastapi-cli==0.0.13
+starlette==0.37.2
