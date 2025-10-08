@@ -6,8 +6,18 @@ import numpy as np
 import io
 import os
 import requests
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # ya specific domain(s)
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # -----------------------------
 # Model Path Handling
@@ -43,9 +53,6 @@ else:
     except Exception as e:
         raise FileNotFoundError(f"Model not found locally or remotely: {e}")
 
-# -----------------------------
-# Load Model
-# -----------------------------
 print(f"🔹 Loading model from: {MODEL_PATH}")
 model = load_model(MODEL_PATH)
 print("✅ Model loaded successfully.")
