@@ -5,12 +5,55 @@ from PIL import Image
 import numpy as np
 import io
 import os
-BASE_PATH = r"C:\Users\DELL\OneDrive\Desktop\dataset"
-MODEL_PATH = os.path.join(BASE_PATH, "vin_model.h5")
-if not os.path.exists(MODEL_PATH):
-    raise FileNotFoundError(f"Model not found at {MODEL_PATH}")
-model = load_model(MODEL_PATH)
+import requests
+
 app = FastAPI()
+
+# -----------------------------
+# Model Path Handling
+# -----------------------------
+# Local path (for your system)
+LOCAL_MODEL_PATH = r"C:\Users\DELL\OneDrive\Desktop\dataset\vin_model.h5"
+
+# Project-relative path (for Render)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+RENDER_MODEL_PATH = os.path.join(BASE_DIR, "models", "vin_model.h5")
+
+# Optionally, a remote link if model is large
+MODEL_URL = "https://your-storage-link/vin_model.h5"  # optional (if >100MB)
+
+# Determine which path to use
+if os.path.exists(LOCAL_MODEL_PATH):
+    MODEL_PATH = LOCAL_MODEL_PATH
+elif os.path.exists(RENDER_MODEL_PATH):
+    MODEL_PATH = RENDER_MODEL_PATH
+else:
+    # Auto-download model if not found
+    print("Model not found locally. Attempting to download...")
+    os.makedirs(os.path.join(BASE_DIR, "models"), exist_ok=True)
+    try:
+        r = requests.get(MODEL_URL)
+        if r.status_code == 200:
+            with open(RENDER_MODEL_PATH, "wb") as f:
+                f.write(r.content)
+            MODEL_PATH = RENDER_MODEL_PATH
+            print("✅ Model downloaded successfully.")
+        else:
+            raise FileNotFoundError(f"Failed to download model. Status: {r.status_code}")
+    except Exception as e:
+        raise FileNotFoundError(f"Model not found locally or remotely: {e}")
+
+# -----------------------------
+# Load Model
+# -----------------------------
+print(f"🔹 Loading model from: {MODEL_PATH}")
+model = load_model(MODEL_PATH)
+print("✅ Model loaded successfully.")
+
+
+# -----------------------------
+# Preprocessing Function
+# -----------------------------
 def preprocess_image(img: Image.Image):
     """
     Preprocess uploaded image so it matches model input (128x128x3).
@@ -18,7 +61,7 @@ def preprocess_image(img: Image.Image):
     """
     img = img.resize((128, 128))
     img_array = np.array(img)
-    img_array = img_array[:, :, ::-1]
+    img_array = img_array[:, :, ::-1]  # RGB → BGR
     img_array = img_array / 255.0
     return np.expand_dims(img_array, axis=0)
 
@@ -34,7 +77,6 @@ async def predict(file: UploadFile = File(...)):
         input_array = preprocess_image(img)
 
         pred = model.predict(input_array)[0][0]  # sigmoid output
-
         label = "real" if pred >= 0.5 else "fake"
         prob = float(pred if label == "real" else 1 - pred)
 
